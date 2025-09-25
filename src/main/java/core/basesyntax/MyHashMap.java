@@ -1,17 +1,14 @@
 package core.basesyntax;
-
 import java.util.Objects;
 
 public class MyHashMap<K, V> implements MyMap<K, V> {
-    // Tunables
-    private static final int DEFAULT_INITIAL_CAPACITY = 16; // must be power of two
+    private static final int DEFAULT_INITIAL_CAPACITY = 16; // power of two
     private static final float DEFAULT_LOAD_FACTOR = 0.75f;
     private static final int MAX_CAPACITY = 1 << 30;
 
-    // Table buckets
     private Node<K, V>[] table;
     private int size;
-    private int threshold; // resize trigger
+    private int threshold;
     private final float loadFactor;
 
     public MyHashMap() {
@@ -23,12 +20,8 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
     }
 
     public MyHashMap(int initialCapacity, float loadFactor) {
-        if (initialCapacity < 0) {
-            throw new IllegalArgumentException("Illegal capacity: " + initialCapacity);
-        }
-        if (loadFactor <= 0 || Float.isNaN(loadFactor)) {
-            throw new IllegalArgumentException("Illegal loadFactor");
-        }
+        if (initialCapacity < 0) throw new IllegalArgumentException("Illegal capacity: " + initialCapacity);
+        if (loadFactor <= 0 || Float.isNaN(loadFactor)) throw new IllegalArgumentException("Illegal loadFactor");
         this.loadFactor = loadFactor;
         int cap = tableSizeFor(initialCapacity);
         //noinspection unchecked
@@ -53,23 +46,23 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
 
         Node<K, V> current = head;
         while (true) {
-            if (current.getHash() == hash && Objects.equals(current.getKey(), key)) {
-                current.setValue(value); // overwrite
+            if (current.hash == hash && Objects.equals(current.key, key)) {
+                current.value = value; // overwrite
                 return;
             }
-            if (current.getNext() == null) {
-                current.setNext(new Node<>(hash, key, value, null));
+            if (current.next == null) {
+                current.next = new Node<>(hash, key, value, null);
                 size++;
                 return;
             }
-            current = current.getNext();
+            current = current.next;
         }
     }
 
     @Override
     public V getValue(K key) {
         Node<K, V> node = getNode(key);
-        return node == null ? null : node.getValue();
+        return node == null ? null : node.value;
     }
 
     @Override
@@ -77,17 +70,15 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
         return size;
     }
 
-    /* ----------------- internals ----------------- */
-
     private Node<K, V> getNode(K key) {
         int hash = hash(key);
         int idx = indexFor(hash, table.length);
         Node<K, V> e = table[idx];
         while (e != null) {
-            if (e.getHash() == hash && Objects.equals(e.getKey(), key)) {
+            if (e.hash == hash && Objects.equals(e.key, key)) {
                 return e;
             }
-            e = e.getNext();
+            e = e.next;
         }
         return null;
     }
@@ -107,11 +98,9 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
         for (Node<K, V> head : oldTab) {
             Node<K, V> e = head;
             while (e != null) {
-                Node<K, V> next = e.getNext();
-                int newIdx = indexFor(e.getHash(), newCap);
-
-                e.setNext(newTab[newIdx]);
-
+                Node<K, V> next = e.next;
+                int newIdx = indexFor(e.hash, newCap);
+                e.next = newTab[newIdx]; // insert at head
                 newTab[newIdx] = e;
                 e = next;
             }
@@ -120,7 +109,6 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
         threshold = newThr;
     }
 
-    // Spread bits
     private static int hash(Object key) {
         int h = (key == null) ? 0 : key.hashCode();
         return h ^ (h >>> 16);
@@ -141,7 +129,6 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
         return Math.max(1, n);
     }
 
-    // Singly-linked node
     private static final class Node<K, V> {
         private final int hash;
         private final K key;
@@ -152,30 +139,6 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
             this.hash = hash;
             this.key = key;
             this.value = value;
-            this.next = next;
-        }
-
-        private int getHash() {
-            return hash;
-        }
-
-        private K getKey() {
-            return key;
-        }
-
-        private V getValue() {
-            return value;
-        }
-
-        private void setValue(V value) {
-            this.value = value;
-        }
-
-        private Node<K, V> getNext() {
-            return next;
-        }
-
-        private void setNext(Node<K, V> next) {
             this.next = next;
         }
     }
