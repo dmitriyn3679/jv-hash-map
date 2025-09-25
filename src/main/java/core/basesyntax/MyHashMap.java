@@ -109,6 +109,7 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
             while (e != null) {
                 Node<K, V> next = e.getNext();
                 int newIdx = indexFor(e.getHash(), newCap);
+
                 e.setNext(newTab[newIdx]);  // insert at head
                 newTab[newIdx] = e;
                 e = next;
