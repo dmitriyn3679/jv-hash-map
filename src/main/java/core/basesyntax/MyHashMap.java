@@ -1,4 +1,5 @@
 package core.basesyntax;
+
 import java.util.Objects;
 
 public class MyHashMap<K, V> implements MyMap<K, V> {
@@ -20,8 +21,16 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
     }
 
     public MyHashMap(int initialCapacity, float loadFactor) {
-        if (initialCapacity < 0) throw new IllegalArgumentException("Illegal capacity: " + initialCapacity);
-        if (loadFactor <= 0 || Float.isNaN(loadFactor)) throw new IllegalArgumentException("Illegal loadFactor");
+        if (initialCapacity < 0) {
+            throw new IllegalArgumentException(
+                    "Illegal capacity: " + initialCapacity
+            );
+        }
+        if (loadFactor <= 0 || Float.isNaN(loadFactor)) {
+            throw new IllegalArgumentException(
+                    "Illegal loadFactor: " + loadFactor
+            );
+        }
         this.loadFactor = loadFactor;
         int cap = tableSizeFor(initialCapacity);
         //noinspection unchecked
