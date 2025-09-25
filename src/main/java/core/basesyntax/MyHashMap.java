@@ -38,14 +38,12 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
 
     @Override
     public void put(K key, V value) {
-        // Resize if needed before insert to keep invariant
         if (size >= threshold) {
             resize();
         }
         int hash = hash(key);
         int idx = indexFor(hash, table.length);
 
-        // If bucket empty, drop node in
         Node<K, V> head = table[idx];
         if (head == null) {
             table[idx] = new Node<>(hash, key, value, null);
@@ -53,26 +51,25 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
             return;
         }
 
-        // Walk chain: update if same key, else append at head (or tail)
         Node<K, V> current = head;
         while (true) {
-            if (current.hash == hash && Objects.equals(current.key, key)) {
-                current.value = value; // overwrite existing
+            if (current.getHash() == hash && Objects.equals(current.getKey(), key)) {
+                current.setValue(value); // overwrite
                 return;
             }
-            if (current.next == null) {
-                current.next = new Node<>(hash, key, value, null);
+            if (current.getNext() == null) {
+                current.setNext(new Node<>(hash, key, value, null));
                 size++;
                 return;
             }
-            current = current.next;
+            current = current.getNext();
         }
     }
 
     @Override
     public V getValue(K key) {
         Node<K, V> node = getNode(key);
-        return node == null ? null : node.value;
+        return node == null ? null : node.getValue();
     }
 
     @Override
@@ -84,14 +81,13 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
 
     private Node<K, V> getNode(K key) {
         int hash = hash(key);
-        Node<K, V>[] tab = table;
-        int idx = indexFor(hash, tab.length);
-        Node<K, V> e = tab[idx];
+        int idx = indexFor(hash, table.length);
+        Node<K, V> e = table[idx];
         while (e != null) {
-            if (e.hash == hash && Objects.equals(e.key, key)) {
+            if (e.getHash() == hash && Objects.equals(e.getKey(), key)) {
                 return e;
             }
-            e = e.next;
+            e = e.getNext();
         }
         return null;
     }
@@ -103,19 +99,17 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
             threshold = Integer.MAX_VALUE;
             return;
         }
-        int newCap = oldCap << 1; // double
+        int newCap = oldCap << 1;
         int newThr = (int) (newCap * loadFactor);
         //noinspection unchecked
         Node<K, V>[] newTab = (Node<K, V>[]) new Node[newCap];
 
-        // Rehash nodes into new table
         for (Node<K, V> head : oldTab) {
             Node<K, V> e = head;
             while (e != null) {
-                Node<K, V> next = e.next;
-                int newIdx = indexFor(e.hash, newCap);
-                // Insert at head of new bucket (simple, fast)
-                e.next = newTab[newIdx];
+                Node<K, V> next = e.getNext();
+                int newIdx = indexFor(e.getHash(), newCap);
+                e.setNext(newTab[newIdx]);  // insert at head
                 newTab[newIdx] = e;
                 e = next;
             }
@@ -124,14 +118,13 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
         threshold = newThr;
     }
 
-    // Spread bits to reduce collisions for poor hashCodes (like JDK)
+    // Spread bits
     private static int hash(Object key) {
         int h = (key == null) ? 0 : key.hashCode();
         return h ^ (h >>> 16);
     }
 
     private static int indexFor(int hash, int length) {
-        // length is power of two; mask is faster than %
         return hash & (length - 1);
     }
 
@@ -153,34 +146,34 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
         private V value;
         private Node<K, V> next;
 
-        Node(int hash, K key, V value, Node<K, V> next) {
+        private Node(int hash, K key, V value, Node<K, V> next) {
             this.hash = hash;
             this.key = key;
             this.value = value;
             this.next = next;
         }
 
-        public int getHash() {
+        private int getHash() {
             return hash;
         }
 
-        public K getKey() {
+        private K getKey() {
             return key;
         }
 
-        public V getValue() {
+        private V getValue() {
             return value;
         }
 
-        public void setValue(V value) {
+        private void setValue(V value) {
             this.value = value;
         }
 
-        public Node<K, V> getNext() {
+        private Node<K, V> getNext() {
             return next;
         }
 
-        public void setNext(Node<K, V> next) {
+        private void setNext(Node<K, V> next) {
             this.next = next;
         }
     }
